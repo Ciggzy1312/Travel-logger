@@ -16,13 +16,14 @@ function App() {
 
   const [pins, setPins] = useState([])
   const [currentPlaceId, setCurrentPlaceId] = useState(null);
+  const [newPlace, setNewPlace] = useState(null)
 
   useEffect(() => {
     const getPins = async () => {
       try {
         const res = await axios.get("/pins");
         setPins(res.data)
-        console.log(res)
+        //console.log(res.data)
       } catch (err) {
         console.log(err);
       }
@@ -34,14 +35,25 @@ function App() {
   const handleMarkerClick = (id, lat, long) => {
     setCurrentPlaceId(id);
     setViewport({ ...viewport, latitude: lat, longitude: long });
-  };
+  }
+
+  const handleAddPlace = (e)=>{
+    const [long, lat] = e.lngLat
+    setNewPlace({
+      lat,
+      long
+    })
+  }
 
   return (
     <div className="App">
       <ReactMapGL
       {...viewport}
       mapboxApiAccessToken = {process.env.REACT_APP_MAPBOX}
-      onViewportChange={nextViewport => setViewport(nextViewport)}>
+      onViewportChange={nextViewport => setViewport(nextViewport)}
+      onDblClick={handleAddPlace}
+      transitionDuration = '100'
+      >
         {pins.map((p) => (
           <>
             <Marker
@@ -88,6 +100,16 @@ function App() {
             )}
           </>
         ))}
+
+        {newPlace && <Popup
+                //key={p._id}
+                latitude={newPlace.lat}
+                longitude={newPlace.long}
+                closeButton={true}
+                closeOnClick={false}
+                onClose={() => setNewPlace(null)}
+                anchor="left"
+        >Hello...</Popup>}
       </ReactMapGL>
     </div>
   );

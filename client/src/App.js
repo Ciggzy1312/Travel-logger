@@ -17,6 +17,10 @@ function App() {
   const [pins, setPins] = useState([])
   const [currentPlaceId, setCurrentPlaceId] = useState(null);
   const [newPlace, setNewPlace] = useState(null)
+  const [currentUsername, setCurrentUsername] = useState('John')
+  const [title, setTitle] = useState(null);
+  const [desc, setDesc] = useState(null);
+  const [rating, setRating] = useState(0);
 
   useEffect(() => {
     const getPins = async () => {
@@ -44,6 +48,26 @@ function App() {
       long
     })
   }
+  
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
+    const newPin = {
+      username: currentUsername,
+      title,
+      desc,
+      rating,
+      lat: newPlace.lat,
+      long: newPlace.long,
+    }
+
+    try {
+      const res = await axios.post('/pins', newPin)
+      setPins([...pins, res.data]);
+      setNewPlace(null);
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
   return (
     <div className="App">
@@ -65,7 +89,7 @@ function App() {
               <Room
                 style={{
                   fontSize: 7 * viewport.zoom,
-                  color: "tomato",
+                  color: currentUsername === p.username ? "tomato" : "slateblue",
                   cursor: "pointer",
                 }}
                 onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
@@ -88,7 +112,7 @@ function App() {
                   <p className="desc">{p.desc}</p>
                   <label>Rating</label>
                   <div className="stars">
-                    {Array(p.rating).fill(<Star className="star" />)}
+                    {Array(parseInt(p.rating)).fill(<Star className="star" />)}
                   </div>
                   <label>Information</label>
                   <span className="username">
@@ -98,18 +122,45 @@ function App() {
                 </div>
               </Popup>
             )}
-          </>
-        ))}
+            </>
+          ))}
 
-        {newPlace && <Popup
-                //key={p._id}
-                latitude={newPlace.lat}
-                longitude={newPlace.long}
-                closeButton={true}
-                closeOnClick={false}
-                onClose={() => setNewPlace(null)}
-                anchor="left"
-        >Hello...</Popup>}
+          {newPlace && <Popup
+              //key={p._id}
+              latitude={newPlace.lat}
+              longitude={newPlace.long}
+              closeButton={true}
+              closeOnClick={false}
+              onClose={() => setNewPlace(null)}
+              anchor="left"
+          > 
+          <div>
+          <form onSubmit={handleSubmit}>
+            <label>Title</label>
+            <input
+              placeholder="Enter a title"
+              autoFocus
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <label>Description</label>
+            <textarea
+              placeholder="Say us something about this place."
+              onChange={(e) => setDesc(e.target.value)}
+            />
+            <label>Rating</label>
+            <select onChange={(e) => setRating(e.target.value)}>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+            <button type="submit" className="submitButton">
+              Add Pin
+            </button>
+          </form>
+        </div>
+        </Popup>}
       </ReactMapGL>
     </div>
   );
